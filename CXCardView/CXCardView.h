@@ -20,6 +20,9 @@ typedef void(^CXCardViewHandler)(CXCardView *cardView);
 @property (nonatomic, copy) CXCardViewHandler didDismissHandler;
 
 @property (nonatomic, assign) BOOL draggable;
+@property (nonatomic, assign) NSTimeInterval moveToCenterDuration;
+@property (nonatomic, assign) NSTimeInterval moveToBottomDuration;
+@property (nonatomic, assign) NSTimeInterval moveToPedingDuration;
 @property (nonatomic, strong, readonly) UIView *contentView;
 @property (nonatomic, strong, readonly) CXCardContainerView *containerView;
 

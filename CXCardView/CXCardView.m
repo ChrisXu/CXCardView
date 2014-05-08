@@ -22,7 +22,6 @@ static BOOL __cx_cardview_animating;
 static CXCardBackgroundWindow *__cx_cardview_background_window;
 static UIWindow *__cx_cardview_original_window;
 static CXCardView *__cx_cardview_current_view;
-static dispatch_semaphore_t __cx_cardview_c_sem;
 
 @interface CXCardView ()
 <CardViewDelegate>
@@ -30,7 +29,6 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
     CGRect _originFrame;
     CGRect _keyboardBeginFrame;
     CGRect _keyboardEndFrame;
-    BOOL _isAnimatingToPendding;
     BOOL _shouldSkipTransitionToPendding;
     dispatch_semaphore_t _sem;
 }
@@ -39,6 +37,9 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
 @property (nonatomic, assign, getter = isVisible) BOOL visible;
 @property (nonatomic, assign, getter = isLayoutDirty) BOOL layoutDirty;
 @property (nonatomic, assign) BOOL isAtPending;
+@property (nonatomic, assign) BOOL isAnimatingToCenter;
+@property (nonatomic, assign) BOOL isAnimatingToBottom;
+@property (nonatomic, assign) BOOL isAnimatingToPending;
 @property (nonatomic, assign) CGPoint pendingCenter;
 @property (nonatomic, assign) CGPoint showingCenter;
 
@@ -54,9 +55,7 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
 + (void)showBackground;
 + (void)hideBackground;
 
-+ (void)lock;
-+ (void)unlock;
-
+- (void)initDefault;
 - (void)setup;
 - (void)tearDown;
 - (void)validateLayout;
@@ -67,8 +66,8 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
 - (void)moveToPending;
 - (void)dismissWithCleanup:(BOOL)cleanup;
 
-- (void)transitionInCompletion:(void(^)(void))completion;
-- (void)transitionOutCompletion:(void(^)(void))completion;
+- (void)transitionToCenterCompletion:(void(^)(void))completion;
+- (void)transitionToBottomCompletion:(void(^)(void))completion;
 - (void)transitionToPendingCompletion:(void(^)(void))completion;
 // Notification
 - (void)keyboardWillShow:(NSNotification *)notification;
@@ -117,8 +116,8 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
 {
     self = [super init];
     if (self) {
-        _draggable = YES;
         _contentView = view;
+        [self initDefault];
     }
     return self;
 }
@@ -149,7 +148,8 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
         return;
     }
     
-    if ([CXCardView currentCardView].isVisible) {
+    CXCardView *currentCardView = [CXCardView currentCardView];
+    if (currentCardView.isVisible && !currentCardView.isAnimatingToBottom) {
         // new card is coming
         CXCardView *cardView = [CXCardView currentCardView];
         [cardView moveToPending];
@@ -183,8 +183,8 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
         _showingCenter = _containerView.center;
     }
     
-    if (!_isAnimatingToPendding) {
-        [self transitionInCompletion:^{
+    if (!_isAnimatingToPending) {
+        [self transitionToCenterCompletion:^{
             if (self.didShowHandler) {
                 self.didShowHandler(self);
             }
@@ -262,7 +262,7 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
             _containerView.transform = CGAffineTransformMakeRotation(degree);
             _containerView.center = pendingCenter;
             
-            _isAnimatingToPendding = YES;
+            _isAnimatingToPending = YES;
             [UIView animateWithDuration:0.3 animations:^{
                 self.alpha = 1.;
                 _containerView.center = interruptCenter;
@@ -271,8 +271,8 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
                 
                 if (_shouldSkipTransitionToPendding) {
                     _shouldSkipTransitionToPendding = NO;
-                    _isAnimatingToPendding = NO;
-                    [self transitionInCompletion:^{
+                    _isAnimatingToPending = NO;
+                    [self transitionToCenterCompletion:^{
                         if (self.didShowHandler) {
                             self.didShowHandler(self);
                         }
@@ -290,7 +290,7 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
                         [UIView animateWithDuration:0.3 animations:^{
                             _containerView.alpha = 0.7;
                         }completion:^(BOOL finished) {
-                            _isAnimatingToPendding = NO;
+                            _isAnimatingToPending = NO;
                         }];
                     }];
                 }
@@ -387,7 +387,10 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
 {
     if (!__cx_cardview_background_window) {
         __cx_cardview_background_window = [[CXCardBackgroundWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-        
+        __cx_cardview_background_window.alpha = 0.;
+    }
+    
+    if (__cx_cardview_background_window.alpha == 0.) {
         [__cx_cardview_background_window makeKeyAndVisible];
         __cx_cardview_background_window.alpha = 0;
         [UIView animateWithDuration:0.3
@@ -404,23 +407,19 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
                          __cx_cardview_background_window.alpha = 0;
                      }
                      completion:^(BOOL finished) {
-                         [__cx_cardview_background_window removeFromSuperview];
-                         __cx_cardview_background_window = nil;
+                         if (finished) {
+                             [__cx_cardview_background_window removeFromSuperview];
+                             __cx_cardview_background_window = nil;
+                         }
                      }];
 }
 
-+ (void)lock
+- (void)initDefault
 {
-    if (!__cx_cardview_c_sem) {
-        __cx_cardview_c_sem = dispatch_semaphore_create(0);
-    }
-    
-    dispatch_semaphore_wait(__cx_cardview_c_sem, DISPATCH_TIME_FOREVER);
-}
-
-+ (void)unlock
-{
-    dispatch_semaphore_signal(__cx_cardview_c_sem);
+    self.draggable = YES;
+    _moveToPedingDuration = 0.45;
+    _moveToCenterDuration = 0.45;
+    _moveToBottomDuration = 0.3;
 }
 
 - (void)setup
@@ -505,10 +504,6 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
 
 - (BOOL)isCardViewExist
 {
-//    if (_contentView == [CXCardView currentCardView].contentView) {
-//        return YES;
-//    }
-
     for (CXCardView *cardView in [CXCardView sharedQueue]) {
         if (_contentView == cardView.contentView && [CXCardView currentCardView].isVisible) {
             return YES;
@@ -599,7 +594,7 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
     };
     
     if (isVisible) {
-        [self transitionOutCompletion:dismissComplete];
+        [self transitionToBottomCompletion:dismissComplete];
         
         if ([CXCardView sharedQueue].count == 1) {
             [CXCardView hideBackground];
@@ -614,7 +609,7 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
     }
 }
 
-- (void)transitionInCompletion:(void(^)(void))completion
+- (void)transitionToCenterCompletion:(void(^)(void))completion
 {
     CGPoint center = _showingCenter;
     CGFloat offset = CGRectGetMidY(_originFrame);
@@ -625,30 +620,31 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
         _containerView.center = outCenter;
         _containerView.transform = CGAffineTransformMakeRotation(0.25f * offset * kDefaultPendingDegree);
     }
-    
-    [UIView animateWithDuration:0.45
-                     animations:^{
-                         _containerView.transform = CGAffineTransformIdentity;
-                         _containerView.center = _showingCenter;
-                         _containerView.alpha = 1.;
-                     }
-                     completion:^(BOOL finished) {
-                         if (completion) {
-                             completion();
-                         }
-                     }];
+    _isAnimatingToCenter = YES;
+    [UIView animateKeyframesWithDuration:_moveToCenterDuration delay:0. options:UIViewKeyframeAnimationOptionCalculationModeCubicPaced animations:^{
+        _containerView.transform = CGAffineTransformIdentity;
+        _containerView.center = _showingCenter;
+        _containerView.alpha = 1.;
+    } completion:^(BOOL finished) {
+        _isAnimatingToCenter = NO;
+        if (completion) {
+            completion();
+        }
+    }];
 }
 
-- (void)transitionOutCompletion:(void(^)(void))completion
+- (void)transitionToBottomCompletion:(void(^)(void))completion
 {
     CGPoint center = _containerView.center;
     CGFloat offset = CGRectGetHeight([UIScreen mainScreen].bounds) - CGRectGetMinY(_originFrame);
     center.y += offset*1.5;
     
-    [UIView animateKeyframesWithDuration:0.3 delay:0. options:UIViewKeyframeAnimationOptionCalculationModeCubicPaced animations:^{
+    _isAnimatingToBottom = YES;
+    [UIView animateKeyframesWithDuration:_moveToBottomDuration delay:0. options:UIViewKeyframeAnimationOptionCalculationModeCubicPaced animations:^{
         self.center = center;
         self.transform = CGAffineTransformMakeRotation(0.25f * offset * M_PI / 180/4);
     } completion:^(BOOL finished) {
+        _isAnimatingToBottom = NO;
         if (completion) {
             completion();
         }
@@ -664,17 +660,18 @@ static dispatch_semaphore_t __cx_cardview_c_sem;
     _pendingCenter = pendingCenter;
     CGFloat degree = 0.25f * (offset - kDefaultPendingTopOffset) * kDefaultPendingDegree;
     
-    [UIView animateWithDuration:0.45
-                     animations:^{
+    _isAnimatingToPending = YES;
+    [UIView animateKeyframesWithDuration:_moveToPedingDuration delay:0. options:UIViewKeyframeAnimationOptionCalculationModeCubicPaced animations:^{
                          _containerView.transform = CGAffineTransformMakeRotation(degree);
                          _containerView.center = pendingCenter;
-                     }
-                     completion:^(BOOL finished) {
-                         _isAtPending = YES;
-                         if (completion) {
-                             completion();
-                         }
-                     }];
+    }
+    completion:^(BOOL finished) {
+        _isAnimatingToPending = NO;
+        _isAtPending = YES;
+        if (completion) {
+            completion();
+        }
+    }];
 }
 
 - (void)keyboardWillShow:(NSNotification *)notification
