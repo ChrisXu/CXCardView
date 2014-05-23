@@ -242,7 +242,7 @@ static CXCardView *__cx_cardview_current_view;
             if (!self.oldKeyWindow) {
                 self.oldKeyWindow = lastCardView.oldKeyWindow;
                 lastCardView.oldKeyWindow = self.cardViewWindow;
-                [lastCardView.cardViewWindow makeKeyAndVisible];
+                [[CXCardView currentCardView].cardViewWindow makeKeyAndVisible];
             }
             
             if (!self.isAtPending) {

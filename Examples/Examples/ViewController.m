@@ -100,30 +100,32 @@
 
 - (void)showLaterDefaultContentView
 {
-    [self showDefaultContentView];
+//    [self showDefaultContentView];
     
     double delayInSeconds = 0.5;
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-        DemoContentView *otherView = [DemoContentView defaultView];
-        
-        UILabel *descriptionLabel = [[UILabel alloc] init];
-        descriptionLabel.frame = CGRectMake(20, 8, 260, 100);
-        descriptionLabel.numberOfLines = 0.;
-        descriptionLabel.textAlignment = NSTextAlignmentLeft;
-        descriptionLabel.backgroundColor = [UIColor clearColor];
-        descriptionLabel.textColor = [UIColor blackColor];
-        descriptionLabel.font = [UIFont fontWithName:@"Avenir-Roman" size:14.];
-        descriptionLabel.text = @"You could use this as a low priority content to show without block user";
-        [otherView addSubview:descriptionLabel];
-        
-        CXCardView *cardView = [[CXCardView alloc] initWithView:otherView];
-        
-        [otherView setDismissHandler:^(DemoContentView *view) {
-            [cardView dismiss];
-        }];
-        
-        [cardView showLater];
+        for (NSInteger i = 0; i < 3; i++) {
+            DemoContentView *otherView = [DemoContentView defaultView];
+            
+            UILabel *descriptionLabel = [[UILabel alloc] init];
+            descriptionLabel.frame = CGRectMake(20, 8, 260, 100);
+            descriptionLabel.numberOfLines = 0.;
+            descriptionLabel.textAlignment = NSTextAlignmentLeft;
+            descriptionLabel.backgroundColor = [UIColor clearColor];
+            descriptionLabel.textColor = [UIColor blackColor];
+            descriptionLabel.font = [UIFont fontWithName:@"Avenir-Roman" size:14.];
+            descriptionLabel.text = @"You could use this as a low priority content to show without block user";
+            [otherView addSubview:descriptionLabel];
+            
+            CXCardView *cardView = [[CXCardView alloc] initWithView:otherView];
+            
+            [otherView setDismissHandler:^(DemoContentView *view) {
+                [cardView dismiss];
+            }];
+            
+            [cardView showLater];
+        }
     });
 }
 
