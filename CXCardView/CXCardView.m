@@ -435,6 +435,7 @@ static CXCardView *__cx_cardview_current_view;
     frame.origin.x = MIN(320, (320 - CGRectGetWidth(frame))/2);
     
     _containerView = [[CXCardContainerView alloc] initWithFrame:frame];
+    _containerView.draggable = _draggable;
     _containerView.delegate = self;
     [self addSubview:self.containerView];
     
@@ -588,8 +589,27 @@ static CXCardView *__cx_cardview_current_view;
             [cardView show];
         }
         else {
-            [[CXCardView originalWindow] makeKeyAndVisible];
-            [CXCardView originalWindow].hidden = NO;
+            UIWindow *nextKeyWindow = [CXCardView originalWindow];
+            NSArray *windows = [UIApplication sharedApplication].windows;
+            NSInteger index = 0;
+            
+            if ([windows containsObject:nextKeyWindow]) {
+                index = [windows indexOfObject:nextKeyWindow];
+            }
+            
+            for (NSInteger i = index; i >= 0 ; i--) {
+                UIWindow *window = [windows objectAtIndex:i];
+                if (window.tag != kCXCardViewRemoveWindowIdentifier) {
+                    nextKeyWindow = window;
+                    break;
+                }
+            }
+            
+            [nextKeyWindow makeKeyAndVisible];
+            
+            if (nextKeyWindow == [CXCardView originalWindow]) {
+                [CXCardView originalWindow].hidden = NO;
+            }
         }
     };
     
@@ -733,7 +753,6 @@ static CXCardView *__cx_cardview_current_view;
 
 - (void)cardViewDidDragToBottom:(CXCardContainerView *)card
 {
-    self.visible = NO;
     [self dismissWithCleanup:YES];
 }
 

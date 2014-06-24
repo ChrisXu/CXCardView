@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+static NSInteger const kCXCardViewRemoveWindowIdentifier = 82713;
+
 @class CXCardView, CXCardContainerView;
 typedef void(^CXCardViewHandler)(CXCardView *cardView);
 @interface CXCardView : UIView
