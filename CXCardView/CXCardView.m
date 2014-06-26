@@ -179,7 +179,7 @@ static CXCardView *__cx_cardview_current_view;
         [self.cardViewWindow makeKeyAndVisible];
     }
     
-    if (!self.isAtPending) {
+    if (CGPointEqualToPoint(_showingCenter, CGPointZero) && !self.isAtPending) {
         _showingCenter = _containerView.center;
     }
     
@@ -245,7 +245,7 @@ static CXCardView *__cx_cardview_current_view;
                 [[CXCardView currentCardView].cardViewWindow makeKeyAndVisible];
             }
             
-            if (!self.isAtPending) {
+            if (CGPointEqualToPoint(_showingCenter, CGPointZero) && !self.isAtPending) {
                 _showingCenter = _containerView.center;
             }
             
@@ -287,11 +287,27 @@ static CXCardView *__cx_cardview_current_view;
                 }
                 else {
                     [self transitionToPendingCompletion:^{
-                        [UIView animateWithDuration:0.3 animations:^{
-                            _containerView.alpha = 0.7;
-                        }completion:^(BOOL finished) {
-                            _isAnimatingToPending = NO;
-                        }];
+                        if (_shouldSkipTransitionToPendding) {
+                            [self transitionToCenterCompletion:^{
+                                if (self.didShowHandler) {
+                                    self.didShowHandler(self);
+                                }
+                                
+                                [CXCardView setAnimating:NO];
+                                
+                                NSInteger index = [[CXCardView sharedQueue] indexOfObject:self];
+                                if (index < [CXCardView sharedQueue].count - 1) {
+                                    [self moveToPending]; // dismiss to show next card view
+                                }
+                            }];
+                        }
+                        else {
+                            [UIView animateWithDuration:0.3 animations:^{
+                                _containerView.alpha = 0.7;
+                            }completion:^(BOOL finished) {
+                                _isAnimatingToPending = NO;
+                            }];
+                        }
                     }];
                 }
             }];
