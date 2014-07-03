@@ -2,7 +2,7 @@ CXCardView
 ==========
 Version 1.0.0
 
-![ScreenShot 1](screenshot1.png)
+![ScreenShot 1](demo.gif)
 
 ![ScreenShot 2](screenshot2.png)
 

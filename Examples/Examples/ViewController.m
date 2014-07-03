@@ -103,9 +103,9 @@
 //    [self showDefaultContentView];
     
     double delayInSeconds = 0.5;
-    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
-    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-        for (NSInteger i = 0; i < 3; i++) {
+    dispatch_time_t popTime1 = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+    dispatch_after(popTime1, dispatch_get_main_queue(), ^(void){
+        for (NSInteger i = 0; i < 2; i++) {
             DemoContentView *otherView = [DemoContentView defaultView];
             
             UILabel *descriptionLabel = [[UILabel alloc] init];
@@ -126,6 +126,32 @@
             
             [cardView showLater];
         }
+    });
+    
+    double NewDelayInSeconds = 1.5;
+    dispatch_time_t popTime2 = dispatch_time(DISPATCH_TIME_NOW, NewDelayInSeconds * NSEC_PER_SEC);
+    dispatch_after(popTime2, dispatch_get_main_queue(), ^(void){
+        
+        DemoContentView *otherView = [DemoContentView defaultView];
+        
+        UILabel *descriptionLabel = [[UILabel alloc] init];
+        descriptionLabel.frame = CGRectMake(20, 8, 260, 100);
+        descriptionLabel.numberOfLines = 0.;
+        descriptionLabel.textAlignment = NSTextAlignmentLeft;
+        descriptionLabel.backgroundColor = [UIColor clearColor];
+        descriptionLabel.textColor = [UIColor blackColor];
+        descriptionLabel.font = [UIFont fontWithName:@"Avenir-Roman" size:14.];
+        descriptionLabel.text = @"This is a high priority content to show.";
+        [otherView addSubview:descriptionLabel];
+        
+        CXCardView *cardView = [[CXCardView alloc] initWithView:otherView];
+        
+        [otherView setDismissHandler:^(DemoContentView *view) {
+            [cardView dismiss];
+        }];
+        
+        [cardView show];
+        
     });
 }
 
