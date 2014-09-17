@@ -438,6 +438,20 @@ static CXCardView *__cx_cardview_current_view;
     _moveToBottomDuration = 0.3;
 }
 
+-(CGRect)currentScreenBoundsDependOnOrientation{
+    CGRect screenBounds = [UIScreen mainScreen].bounds ;
+    CGFloat width = CGRectGetWidth(screenBounds)  ;
+    CGFloat height = CGRectGetHeight(screenBounds) ;
+    UIInterfaceOrientation interfaceOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    
+    if(UIInterfaceOrientationIsPortrait(interfaceOrientation)){
+        screenBounds.size = CGSizeMake(width, height);
+    }else if(UIInterfaceOrientationIsLandscape(interfaceOrientation)){
+        screenBounds.size = CGSizeMake(height, width);
+    }
+    return screenBounds ;
+}
+
 - (void)setup
 {
     _contentView.frame = ({
@@ -449,9 +463,10 @@ static CXCardView *__cx_cardview_current_view;
     CGSize screenSize = [UIScreen mainScreen].bounds.size;
     
     CGRect frame = _contentView.frame;
-    frame.origin.y = (screenSize.height - CGRectGetHeight(_contentView.frame))/2;
-    frame.origin.x = MIN(screenSize.width, (screenSize.width - CGRectGetWidth(frame))/2);
-    
+    frame.origin.y = (CGRectGetHeight([self currentScreenBoundsDependOnOrientation]) - CGRectGetHeight(_contentView.frame))/2;
+    float width=CGRectGetWidth([self currentScreenBoundsDependOnOrientation]);
+    frame.origin.x = MIN(width, (width - CGRectGetWidth(frame))/2);
+
     _containerView = [[CXCardContainerView alloc] initWithFrame:frame];
     _containerView.draggable = _draggable;
     _containerView.delegate = self;
