@@ -406,6 +406,7 @@ static CXCardView *__cx_cardview_current_view;
         __cx_cardview_background_window.alpha = 0.;
     }
     
+    [__cx_cardview_background_window.layer removeAllAnimations];
     if (__cx_cardview_background_window.alpha == 0.) {
         [__cx_cardview_background_window makeKeyAndVisible];
         __cx_cardview_background_window.alpha = 0;
@@ -418,7 +419,8 @@ static CXCardView *__cx_cardview_current_view;
 
 + (void)hideBackground
 {
-    [UIView animateWithDuration:0.3
+    [__cx_cardview_background_window.layer removeAllAnimations];
+    [UIView animateWithDuration:0.35
                      animations:^{
                          __cx_cardview_background_window.alpha = 0;
                      }
