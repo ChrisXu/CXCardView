@@ -94,10 +94,18 @@ static CXCardView *__cx_cardview_current_view;
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
+        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(backgroundTapped:)];
+        [self addGestureRecognizer:tap];
     }
     return self;
 }
-
+- (void)backgroundTapped:(UITapGestureRecognizer *)tgr{
+    CGPoint touchedPoint = [tgr locationInView:self];
+    if (!CGRectContainsPoint(self.containerView.frame, touchedPoint)) {
+        //Dismiss when background is tapped
+        [self dismiss];
+    }
+}
 - (void)setDraggable:(BOOL)draggable
 {
     if (_draggable == draggable) {
