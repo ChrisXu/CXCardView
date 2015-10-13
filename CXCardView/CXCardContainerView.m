@@ -168,5 +168,9 @@
     }
 }
 
+-(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    [self touchesEnded:touches withEvent:event];
+}
+
 #pragma mark - Private Method
 @end
