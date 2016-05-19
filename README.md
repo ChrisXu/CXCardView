@@ -53,3 +53,7 @@ THE SOFTWARE IS PROVIDED ‘AS IS’, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ChrisXu1221/cxcardview/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ChrisXu1221/cxcardview/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
