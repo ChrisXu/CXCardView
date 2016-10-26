@@ -462,12 +462,10 @@ static CXCardView *__cx_cardview_current_view;
         frame;
     });
     
-    CGSize screenSize = [UIScreen mainScreen].bounds.size;
-    
     CGRect frame = _contentView.frame;
     frame.origin.y = (CGRectGetHeight([self currentScreenBoundsDependOnOrientation]) - CGRectGetHeight(_contentView.frame))/2;
     float width=CGRectGetWidth([self currentScreenBoundsDependOnOrientation]);
-    frame.origin.x = MIN(width, (width - CGRectGetWidth(frame))/2);
+    frame.origin.x = MAX(0, (width - CGRectGetWidth(frame))/2);
 
     _containerView = [[CXCardContainerView alloc] initWithFrame:frame];
     _containerView.draggable = _draggable;
