@@ -866,7 +866,7 @@ static CXCardView *__cx_cardview_current_view;
 ////    [self.CardView invalidateLayout];
 //}
 
-- (NSUInteger)supportedInterfaceOrientations
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
     return UIInterfaceOrientationMaskAll;
 }
