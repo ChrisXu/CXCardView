@@ -40,7 +40,6 @@ Version 1.0.0
 
  * [@GitHub](https://github.com/ChrisXu1221)
  * [@Twitter](https://twitter.com/taterctl)
- * [@Mail](mailto:taterctl@gmail.com)
  
 ## License
 Copyright (c) 2013 Chris Xu, Licensed under the MIT license (http://www.opensource.org/licenses/mit-license.php)
